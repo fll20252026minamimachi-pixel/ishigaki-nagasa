@@ -29,7 +29,7 @@ export default function App() {
   // 校正／測長
   const [scalePerPx, setScalePerPx] = useState<number | null>(null);
   const [scaleUnit, setScaleUnit] = useState<"mm" | "cm" | "m" | null>(null);
-  const [history, setHistory] = useState<Measurement[]>([]);
+  const [, setHistory] = useState<Measurement[]>([]);
   const [status, setStatus] = useState<string>("");
 
   // 従来方式（先入力）

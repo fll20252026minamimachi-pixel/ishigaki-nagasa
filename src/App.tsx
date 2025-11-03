@@ -53,7 +53,7 @@ export default function App() {
   // ヘルプ
   const [showHelp, setShowHelp] = useState(false);
 
-  // 画像の実寸取得
+  // 実寸取得
   useEffect(() => {
     if (!imgSrc) return;
     const im = new Image();
@@ -73,7 +73,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // スケール（表示倍率）
+  // 表示スケール
   const scale = useMemo(() => {
     if (!imgRef.current || !nat) return 1;
     const dispW = imgRef.current.clientWidth || nat.w;
@@ -93,7 +93,7 @@ export default function App() {
     return { a, b };
   }
 
-  // メトリクス
+  // メトリクス（情報量：以前と同等）
   const metrics = useMemo(() => {
     if (points.length < 2) return null;
     let slope: number;
@@ -192,24 +192,31 @@ export default function App() {
     <div style={{ padding: "8px" }}>
       {/* ===== Help Modal（画像未選択でも開ける） ===== */}
       {showHelp && (
-        <div role="dialog" aria-modal="true" aria-labelledby="help-title"
-             style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'grid', placeItems:'center', zIndex:9999}}
-             onClick={()=>setShowHelp(false)}>
-          <div style={{width:'min(860px, 92vw)', maxHeight:'88vh', overflow:'auto', background:'#fff', borderRadius:12, padding:16, boxShadow:'0 10px 40px rgba(0,0,0,0.25)'}}
-               onClick={(e)=>e.stopPropagation()}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
-              <h2 id="help-title" style={{fontSize:18, fontWeight:700}}>使い方ガイド</h2>
-              <button className="badge" onClick={()=>setShowHelp(false)} aria-label="閉じる">閉じる</button>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="help-title"
+          style={{ position: "fixed", inset: 0, background: "transparent", display: "grid", placeItems: "center", zIndex: 9999 }}
+          onClick={() => setShowHelp(false)}
+        >
+          <div
+            className="help-modal"
+            style={{ width: "min(860px, 92vw)", maxHeight: "88vh", overflow: "auto", background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 10px 40px rgba(0,0,0,0.25)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <h2 id="help-title" style={{ fontSize: 18, fontWeight: 700 }}>使い方ガイド</h2>
+              <button className="badge" onClick={() => setShowHelp(false)} aria-label="閉じる">閉じる</button>
             </div>
-            <div style={{fontSize:14, lineHeight:1.7}}>
-              <ol style={{paddingLeft:18}}>
+            <div style={{ fontSize: 14, lineHeight: 1.7 }}>
+              <ol style={{ paddingLeft: 18 }}>
                 <li><b>画像を選択</b>：上部の「画像を選択」から jpg/png/webp を読み込みます。</li>
                 <li><b>表示サイズ</b>：スライダーで画像の幅（30%〜150%）を調整します。</li>
                 <li><b>線トレース</b>：点をクリックで追加（緑）。モード切替で角度算出方法を変更。</li>
                 <li><b>尺度合わせ</b>：青の2点をクリック後に実長入力で校正、または先に実長入力→2点クリックでも可。</li>
                 <li><b>長さ計測</b>：オレンジの2点クリック。実長入力で校正・記録が可能。</li>
               </ol>
-              <div style={{marginTop:8}}>
+              <div style={{ marginTop: 8 }}>
                 <b>ショートカット</b>：C（尺度） / M（長さ） / Esc（解除） / Alt×2（尺度） / Shift×2（長さ）
               </div>
             </div>
@@ -221,12 +228,12 @@ export default function App() {
   html,body,#root{background:#ffffff!important;}
   .container,.card{background:#ffffff!important;}
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
-  /* 読みやすさ向上: バッジの背景と境界を強化 */
   .badge{background:#ffffff;color:#111;border:1px solid #888;border-radius:10px;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   .badge input,.badge select{margin-left:4px}
-  /* 画像上のパネルを強コントラストに */
-  .floating-panel{background:#ffffff;border:1px solid #000;border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .floating-panel{background:#ffffff;color:#111;border:1px solid #111;border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .floating-panel *{color:#111!important}
   .status-badge{background:#eef6ff;border:1px solid #7bb3ff;color:#012;padding:6px 10px;border-radius:10px}
+  .help-modal{color:#111!important;background:#fff!important}
 `}</style>
 
       <div className="container">
@@ -246,7 +253,7 @@ export default function App() {
                 style={{ position: "absolute", left: -9999, width: 1, height: 1, opacity: 0 }}
               />
 
-              {/* 既定の校正値（従来方式） */}
+              {/* 既定の校正値（従来方式・任意） */}
               <label className="badge">
                 実長(mm/cm/m):
                 <input type="number" value={inputVal} onChange={(e)=>setInputVal(e.target.value)} style={{ width: 70, marginLeft: 4 }} />
@@ -279,7 +286,7 @@ export default function App() {
                 </label>
               )}
 
-              {/* 測長：後から実長指定 */}
+              {/* 測長：後から実長指定や記録 */}
               {pendingMeasure && lastMeasurePx != null && (
                 <label className="badge" title="この区間の実長を入力して適用" style={{ display:'flex', alignItems:'center', gap: 8 }}>
                   この区間: {lastMeasurePx.toFixed(2)} px → 実長
@@ -330,13 +337,13 @@ export default function App() {
               {/* ツール切替 */}
               <button className="badge" aria-pressed={tool==='trace'}
                 style={tool==='trace'?{ outline:'2px solid #22c55e', background:'#eafff1'}:undefined}
-                onClick={()=>{ setTool('trace'); setStatus('線トレースモード'); }}>線トレース</button>
+                onClick={()=>{ setTool('trace'); setArmed('none'); setStatus('線トレースモード'); }}>線トレース</button>
               <button className="badge" aria-pressed={tool==='calib'}
                 style={tool==='calib'?{ outline:'2px solid #22c55e', background:'#eafff1'}:undefined}
-                onClick={()=>{ setTool('calib'); setArmed('none'); setStatus('尺度合わせ: 画像上を2回クリック'); }}>尺度合わせ</button>
+                onClick={()=>{ setTool('calib'); setArmed('calib'); setPendingMeasure(null); setStatus('尺度合わせ: 画像上を2回クリック'); }}>尺度合わせ</button>
               <button className="badge" aria-pressed={tool==='measure'}
                 style={tool==='measure'?{ outline:'2px solid #22c55e', background:'#eafff1'}:undefined}
-                onClick={()=>{ setTool('measure'); setArmed('none'); setStatus('長さ計測: 画像上を2回クリック'); }}>長さ計測</button>
+                onClick={()=>{ setTool('measure'); setArmed('measure'); setPendingCalib(null); setStatus('長さ計測: 画像上を2回クリック'); }}>長さ計測</button>
 
               {/* ステータスとスケール表示 */}
               {scalePerPx != null && scaleUnit && (
@@ -396,14 +403,14 @@ export default function App() {
                   </div>
                 )}
 
-                {/* 計測結果カード */}
+                {/* 計測結果カード（情報量：以前と同じ） */}
                 {metrics && metricsOpen && (
                   <div className="floating-panel" style={{ position:'absolute', right:12, top:12, fontSize:14 }}>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>計測結果</div>
                     <div>角度: {metrics.angleDeg.toFixed(2)}°</div>
                     <div>勾配: {metrics.grade.toFixed(2)}%</div>
                     <div>比: 1:{metrics.ratio.toFixed(2)}</div>
-                    <div style={{ borderTop: '1px solid #eee', marginTop: 6, paddingTop: 6, color: '#666' }}>
+                    <div style={{ borderTop: '1px solid #000', marginTop: 6, paddingTop: 6 }}>
                       最小角度: {metrics.minSeg.toFixed(2)}°<br/>
                       最大角度: {metrics.maxSeg.toFixed(2)}°<br/>
                       差: {metrics.diffSeg.toFixed(2)}°<br/>
